@@ -1,0 +1,394 @@
+import java.util.Arrays;
+import java.util.function.IntPredicate;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
+
+// The task:
+// 1. Read and understand the Hierarchy data structure described in this file.
+// 2. Implement filter() function.
+// 3. Implement more test cases.
+//
+// The task should take 30-90 minutes.
+//
+// When assessing the submission, we will pay attention to:
+// - correctness, efficiency, and clarity of the code;
+// - the test cases.
+
+/**
+ * A `Hierarchy` stores an arbitrary _forest_ (an ordered collection of ordered trees)
+ * as an array of node IDs in the order of DFS traversal, combined with a parallel array of node depths.
+ *
+ * Parent-child relationships are identified by the position in the array and the associated depth.
+ * Each tree root has depth 0, its children have depth 1 and follow it in the array, their children have depth 2 and follow them, etc.
+ *
+ * Example:
+ * ```
+ * nodeIds: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
+ * depths:  0, 1, 2, 3, 1, 0, 1, 0, 1, 1, 2
+ * ```
+ *
+ * the forest can be visualized as follows:
+ * ```
+ * 1
+ * - 2
+ * - - 3
+ * - - - 4
+ * - 5
+ * 6
+ * - 7
+ * 8
+ * - 9
+ * - 10
+ * - - 11
+ *```
+ * 1 is a parent of 2 and 5, 2 is a parent of 3, etc. Note that depth is equal to the number of hyphens for each node.
+ *
+ * Invariants on the depths array:
+ *  * Depth of the first element is 0.
+ *  * If the depth of a node is `D`, the depth of the next node in the array can be:
+ *      * `D + 1` if the next node is a child of this node;
+ *      * `D` if the next node is a sibling of this node;
+ *      * `d < D` - in this case the next node is not related to this node.
+ */
+
+/**
+ * A Hierarchy stores an ordered forest using parallel node-ID and depth arrays.
+ */
+interface Hierarchy {
+  int size();
+
+  int nodeId(int index);
+
+  int depth(int index);
+
+  default String formatString() {
+    return IntStream.range(0, size())
+            .mapToObj(i -> nodeId(i) + ":" + depth(i))
+            .collect(Collectors.joining(", ", "[", "]"));
+  }
+}
+
+/**
+ * Utility methods for Hierarchy.
+ */
+final class HierarchyFilters {
+  private HierarchyFilters() {
+  }
+
+  /**
+   * A node is included only when it passes the predicate and every ancestor
+   * also passes the predicate.
+   */
+  static Hierarchy filter(Hierarchy hierarchy, IntPredicate nodeIdPredicate) {
+    // todo implement
+    return ArrayBasedHierarchy(IntArray(0), IntArray(0))
+}
+}
+
+final class ArrayBasedHierarchy implements Hierarchy {
+  private final int[] nodeIds;
+  private final int[] depths;
+
+  ArrayBasedHierarchy(int[] nodeIds, int[] depths) {
+    if (nodeIds.length != depths.length) {
+      throw new IllegalArgumentException("nodeIds and depths must have the same length");
+    }
+
+    this.nodeIds = nodeIds;
+    this.depths = depths;
+  }
+
+  @Override
+  public int size() {
+    return depths.length;
+  }
+
+  @Override
+  public int nodeId(int index) {
+    return nodeIds[index];
+  }
+
+  @Override
+  public int depth(int index) {
+    return depths[index];
+  }
+}
+
+//class FilterTest {
+//
+//  @Test
+//  void testFilter() {
+//    Hierarchy unfiltered = new ArrayBasedHierarchy(
+//            new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
+//            new int[]{0, 1, 2, 3, 1, 0, 1, 0, 1, 1, 2}
+//    );
+//
+//    Hierarchy filteredActual =
+//            HierarchyFilters.filter(unfiltered, nodeId -> nodeId % 3 != 0);
+//
+//    Hierarchy filteredExpected = new ArrayBasedHierarchy(
+//            new int[]{1, 2, 5, 8, 10, 11},
+//            new int[]{0, 1, 1, 0, 1, 2}
+//    );
+//
+//    assertEquals(filteredExpected.formatString(), filteredActual.formatString());
+//  }
+//
+//  @Test
+//  void removesDescendantsWhenParentFails() {
+//    Hierarchy hierarchy = new ArrayBasedHierarchy(
+//            new int[]{1, 2, 3, 4, 5},
+//            new int[]{0, 1, 2, 1, 0}
+//    );
+//
+//    Hierarchy filtered = HierarchyFilters.filter(hierarchy, id -> id != 2);
+//
+//    assertEquals("[1:0, 5:0]", filtered.formatString());
+//  }
+//
+//  @Test
+//  void returnsEmptyHierarchyWhenRootFails() {
+//    Hierarchy hierarchy = new ArrayBasedHierarchy(
+//            new int[]{1, 2, 3},
+//            new int[]{0, 1, 2}
+//    );
+//
+//    Hierarchy filtered = HierarchyFilters.filter(hierarchy, id -> false);
+//
+//    assertEquals("[]", filtered.formatString());
+//    assertEquals(0, filtered.size());
+//  }
+//}
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.jupiter.api.Test;
+
+class FilterTest {
+
+  @Test
+  void testFilter() {
+    // Filters a forest containing multiple roots and nested descendants.
+    // Nodes divisible by 3 are removed, along with any descendants below them.
+    Hierarchy unfiltered = new ArrayBasedHierarchy(
+            new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
+            new int[]{0, 1, 2, 3, 1, 0, 1, 0, 1, 1, 2}
+    );
+
+    Hierarchy filteredActual =
+            HierarchyFilters.filter(unfiltered, nodeId -> nodeId % 3 != 0);
+
+    Hierarchy filteredExpected = new ArrayBasedHierarchy(
+            new int[]{1, 2, 5, 8, 10, 11},
+            new int[]{0, 1, 1, 0, 1, 2}
+    );
+
+    assertEquals(filteredExpected.formatString(), filteredActual.formatString());
+  }
+
+  @Test
+  void removesDescendantsWhenParentFails() {
+    // Removes node 2 and its descendant node 3.
+    // Node 4 stays because it is node 2's sibling, not its descendant.
+    Hierarchy hierarchy = new ArrayBasedHierarchy(
+            new int[]{1, 2, 3, 4, 5},
+            new int[]{0, 1, 2, 1, 0}
+    );
+
+    Hierarchy filtered = HierarchyFilters.filter(hierarchy, id -> id != 2);
+
+    assertEquals("[1:0, 5:0]", filtered.formatString());
+  }
+
+  @Test
+  void returnsEmptyHierarchyWhenRootFails() {
+    // Removes the only root and therefore removes its complete subtree.
+    Hierarchy hierarchy = new ArrayBasedHierarchy(
+            new int[]{1, 2, 3},
+            new int[]{0, 1, 2}
+    );
+
+    Hierarchy filtered = HierarchyFilters.filter(hierarchy, id -> false);
+
+    assertEquals("[]", filtered.formatString());
+    assertEquals(0, filtered.size());
+  }
+
+  // Added test
+  @Test
+  void keepsAllNodesWhenEveryNodePasses() {
+    // Confirms filtering preserves the complete hierarchy when every node passes.
+    Hierarchy hierarchy = new ArrayBasedHierarchy(
+            new int[]{1, 2, 3, 4, 5},
+            new int[]{0, 1, 2, 1, 0}
+    );
+
+    Hierarchy filtered = HierarchyFilters.filter(hierarchy, id -> true);
+
+    assertEquals("[1:0, 2:1, 3:2, 4:1, 5:0]", filtered.formatString());
+    assertEquals(5, filtered.size());
+  }
+
+  // Added test
+  @Test
+  void returnsEmptyHierarchyForEmptyInput() {
+    // Confirms an empty hierarchy can be filtered without errors
+    // and remains empty regardless of the predicate.
+    Hierarchy hierarchy = new ArrayBasedHierarchy(
+            new int[]{},
+            new int[]{}
+    );
+
+    Hierarchy filtered = HierarchyFilters.filter(hierarchy, id -> true);
+
+    assertEquals("[]", filtered.formatString());
+    assertEquals(0, filtered.size());
+  }
+
+  // Added test
+  @Test
+  void keepsSingleRootWhenItPasses() {
+    // Confirms a one-node hierarchy is retained when its root passes the predicate.
+    Hierarchy hierarchy = new ArrayBasedHierarchy(
+            new int[]{42},
+            new int[]{0}
+    );
+
+    Hierarchy filtered = HierarchyFilters.filter(hierarchy, id -> id == 42);
+
+    assertEquals("[42:0]", filtered.formatString());
+    assertEquals(1, filtered.size());
+  }
+
+  // Added test
+  @Test
+  void removesSingleRootWhenItFails() {
+    // Confirms a one-node hierarchy becomes empty when its only root fails.
+    Hierarchy hierarchy = new ArrayBasedHierarchy(
+            new int[]{42},
+            new int[]{0}
+    );
+
+    Hierarchy filtered = HierarchyFilters.filter(hierarchy, id -> id != 42);
+
+    assertEquals("[]", filtered.formatString());
+    assertEquals(0, filtered.size());
+  }
+
+  // Added test
+  @Test
+  void keepsLaterRootWhenEarlierRootFails() {
+    // Removing one root and its subtree must not affect a later,
+    // independent tree in the same forest.
+    Hierarchy hierarchy = new ArrayBasedHierarchy(
+            new int[]{1, 2, 3, 4, 5},
+            new int[]{0, 1, 0, 1, 2}
+    );
+
+    Hierarchy filtered = HierarchyFilters.filter(hierarchy, id -> id != 1);
+
+    assertEquals("[3:0, 4:1, 5:2]", filtered.formatString());
+  }
+
+  // Added test
+  @Test
+  void keepsSiblingWhenPreviousSiblingFails() {
+    // Removing node 2 must not remove nodes 3 and 4,
+    // because they are siblings with the same included parent, node 1.
+    Hierarchy hierarchy = new ArrayBasedHierarchy(
+            new int[]{1, 2, 3, 4},
+            new int[]{0, 1, 1, 1}
+    );
+
+    Hierarchy filtered = HierarchyFilters.filter(hierarchy, id -> id != 2);
+
+    assertEquals("[1:0, 3:1, 4:1]", filtered.formatString());
+  }
+
+  // Added test
+  @Test
+  void removesEntireDeepSubtreeWhenIntermediateAncestorFails() {
+    // Removing node 2 removes every node below it, even when descendants
+    // are several levels deeper. The separate root node 7 remains.
+    Hierarchy hierarchy = new ArrayBasedHierarchy(
+            new int[]{1, 2, 3, 4, 5, 6, 7},
+            new int[]{0, 1, 2, 3, 2, 1, 0}
+    );
+
+    Hierarchy filtered = HierarchyFilters.filter(hierarchy, id -> id != 2);
+
+    assertEquals("[1:0, 7:0]", filtered.formatString());
+  }
+
+  // Added test
+  @Test
+  void doesNotKeepDescendantThatPassesWhenAncestorFails() {
+    // Node 3 passes the predicate, but it is still removed because
+    // its parent, node 2, fails. A retained node needs every ancestor to pass.
+    Hierarchy hierarchy = new ArrayBasedHierarchy(
+            new int[]{1, 2, 3},
+            new int[]{0, 1, 2}
+    );
+
+    Hierarchy filtered = HierarchyFilters.filter(
+            hierarchy,
+            id -> id == 1 || id == 3
+    );
+
+    assertEquals("[1:0]", filtered.formatString());
+  }
+
+  // Added test
+  @Test
+  void preservesOriginalDepthsForRetainedNodes() {
+    // Confirms retained nodes keep their original depths.
+    // Filtering removes nodes; it does not rebuild or flatten the hierarchy.
+    Hierarchy hierarchy = new ArrayBasedHierarchy(
+            new int[]{1, 2, 3, 4, 5, 6},
+            new int[]{0, 1, 2, 1, 0, 1}
+    );
+
+    Hierarchy filtered = HierarchyFilters.filter(hierarchy, id -> id != 3);
+
+    assertEquals("[1:0, 2:1, 4:1, 5:0, 6:1]", filtered.formatString());
+  }
+
+  // Added test
+  @Test
+  void evaluatesPredicateForEveryInputNode() {
+    // Confirms the current implementation calls the predicate for every node,
+    // including descendants that cannot be retained after a parent fails.
+    Hierarchy hierarchy = new ArrayBasedHierarchy(
+            new int[]{1, 2, 3},
+            new int[]{0, 1, 2}
+    );
+    AtomicInteger predicateCalls = new AtomicInteger();
+
+    Hierarchy filtered = HierarchyFilters.filter(hierarchy, id -> {
+      predicateCalls.incrementAndGet();
+      return id != 1;
+    });
+
+    assertEquals(3, predicateCalls.get());
+    assertEquals("[]", filtered.formatString());
+  }
+
+  // Added test
+  @Test
+  void doesNotModifyOriginalHierarchy() {
+    // Confirms filter creates a new result and leaves the source hierarchy unchanged.
+    Hierarchy hierarchy = new ArrayBasedHierarchy(
+            new int[]{1, 2, 3, 4},
+            new int[]{0, 1, 2, 0}
+    );
+
+    Hierarchy filtered = HierarchyFilters.filter(hierarchy, id -> id != 2);
+
+    assertEquals("[1:0, 2:1, 3:2, 4:0]", hierarchy.formatString());
+    assertEquals("[1:0, 4:0]", filtered.formatString());
+  }
+}
